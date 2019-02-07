@@ -17,9 +17,9 @@ module relu
 	output [N-1:0] o;
 
 	wire [N-1:0] x; // Holds reconstructed secret
+	wire overflow;
 
-
-	// Call A+B
+	// Reconstruct secret by calling A+B
 	// Creates ADD module with parameter N
 	ADD #( .N(N) ) OP1
 	(
@@ -30,9 +30,14 @@ module relu
 		.CO()			 // Carry-out discardded
 	);
 
-
-
-
+	// Compare result against N/2
+	localparam MAX_INT = 2**(N-1);
+	COMP #( .N(N) ) OP2
+	(
+			.A(x),
+			.B(MAX_INT),
+			.O(overflow)
+	);
 
 	assign o = x;
 

@@ -7,31 +7,38 @@ import subprocess
 def test_relu():
 
     clock_cycles = 8
+    N = 8  # bit-width of inputs
     relu_scd = './relu.scd'
     scd_eval = '../../build/scd/SCD_Evaluator_Main'
 
-    g_input = 1234
-    e_input = 1010
+    for g_input in [0, 50, 100, 150, 200, 250]:
+        for e_input in [0, 50, 100, 150, 200, 250]:
+            g_hex_in = hex(g_input)[2:]
+            e_hex_in = hex(e_input)[2:]
 
-    cmd = ' '.join(
-        map(str, [
-            scd_eval, '--scd_file', relu_scd, '--g_input', g_input,
-            '--e_input', e_input, '--clock_cycles', clock_cycles
-        ]))
-    '''cmd = scd_eval + ' --scd_file ' + relu_scd \
-                   + ' --g_input ' + g_input \
-                  + ' --e_input ' + e_input \
-                    + ' --c ' + clock_cycles'''
+            cmd = ' '.join(
+                map(str, [
+                    scd_eval, '--scd_file', relu_scd, \
+                        '--clock_cycles', clock_cycles, \
+                        '--g_input', g_hex_in,
+                        '--e_input', e_hex_in
+                ]))
 
-    print("Calling", cmd)
+            print("Calling", cmd)
 
-    result = subprocess.run([cmd], shell=True, stdout=subprocess.PIPE)
+            result = subprocess.run([cmd], shell=True, stdout=subprocess.PIPE)
+            print('result', result)
+            output = result.stdout.decode('utf-8')
+            print('result', output.strip())
+            output = int('0x' + output, 16)
 
-    output = int(result.stdout)
+            exp_output = (g_input + e_input) % 2**N
+            #exp_output = 1 if (g_input + e_input) % 2**N > 2**(N - 1) else 0
 
-    assert (g_input + e_input == output)
+            print('inputs:', g_input, e_input, 'expect:', exp_output,
+                  'output:', output, '\n')
 
-    print('Test passed:', g_input, '+', e_input, '=', output)
+            assert (exp_output == output)
 
 
 def main():
