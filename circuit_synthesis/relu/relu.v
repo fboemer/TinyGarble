@@ -17,7 +17,6 @@ module relu
 	output [N-1:0] o;       // Relu(x) - r_2
 
 	wire [N-1:0] x; // Holds reconstructed secret
-	wire negative;
 	wire [N-1:0] r1;
 	wire [N-1:0] r2;
 
@@ -39,8 +38,8 @@ module relu
 	wire [N-1:0] relu_x;
 
 	// overflow => x > 0
-	always@(overflow) begin
-		if (overflow == 1) begin
+	always@* begin
+		if (overflow) begin
 			relu_x = x;
 		end
 		else begin
