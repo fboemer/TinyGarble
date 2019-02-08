@@ -55,74 +55,77 @@ def test_relu():
 
     random.seed(1)
 
-    for x_val in [0, 50, 100, 150, 200, 250]:
-        for r1_val in [0, 50, 100, 150, 200, 250]:
-            if x_val - r1_val < 0:
-                continue
+    vals = [
+        -10, -5, -2, -1.5, -0.5, -0.25, 0, 0.25, 0.5, 0.5, 0.75, 1.5, 2, 5, 11
+    ]
 
-            r2 = int(random.random() * MAX_N_HALVES)
+    for x_val in vals:
+        for r1_val in vals:
+            for r2_val in vals:
 
-            x_val = -8.5
-            r1_val = 0.0
-            r2_val = 0.0
-            e_in_val = x_val - r1_val
+                r2 = int(random.random() * MAX_N_HALVES)
 
-            x = FixedPoint(x_val)
+                #x_val = 8.5
+                #r1_val = -0.25
+                #r2_val = -0.75
+                e_in_val = x_val - r1_val
 
-            print('x_int', x.as_int())
-            print('x_float', x.as_float())
-            r1 = FixedPoint(r1_val)
-            print('r1_int', r1.as_int())
-            print('r1_float', r1.as_float())
-            r2 = FixedPoint(r2_val)
+                x = FixedPoint(x_val)
 
-            e_in = FixedPoint(e_in_val)
-            e_hex_in = e_in.as_hex()
-            print('e1_int', e_in.as_int())
-            print('e1_float', e_in.as_float())
+                print('x_int', x.as_int())
+                print('x_float', x.as_float())
+                r1 = FixedPoint(r1_val)
+                print('r1_int', r1.as_int())
+                print('r1_float', r1.as_float())
+                r2 = FixedPoint(r2_val)
 
-            r1_hex = r1.as_hex()
-            r2_hex = r2.as_hex()
+                e_in = FixedPoint(e_in_val)
+                e_hex_in = e_in.as_hex()
+                print('e1_int', e_in.as_int())
+                print('e1_float', e_in.as_float())
 
-            g_hex_in = r1_hex + r2_hex
+                r1_hex = r1.as_hex()
+                r2_hex = r2.as_hex()
 
-            print('g_hex_in', g_hex_in)
+                g_hex_in = r1_hex + r2_hex
 
-            cmd = ' '.join(
-                map(str, [
-                    scd_eval, '--scd_file', relu_scd, \
-                        '--clock_cycles', clock_cycles, \
-                        '--g_input', g_hex_in,
-                        '--e_input', e_hex_in
-                ]))
+                print('g_hex_in', g_hex_in)
 
-            print("Calling", cmd)
+                cmd = ' '.join(
+                    map(str, [
+                        scd_eval, '--scd_file', relu_scd, \
+                            '--clock_cycles', clock_cycles, \
+                            '--g_input', g_hex_in,
+                            '--e_input', e_hex_in
+                    ]))
 
-            result = subprocess.run([cmd], shell=True, stdout=subprocess.PIPE)
-            output = result.stdout.decode('utf-8')
-            print('result 0x' + output.strip())
-            output = int('0x' + output, 16)
+                print("Calling", cmd)
 
-            # exp_output = (x) % 2**N
-            #exp_output = x.as_int() % 2**N
-            #if exp_output < 2**(N - 1):  # x negative
-            #    exp_output = 2**(N - 1)  # x := 0
-            #exp_output -= r2_val  # Masking with r2
+                result = subprocess.run([cmd],
+                                        shell=True,
+                                        stdout=subprocess.PIPE)
+                output = result.stdout.decode('utf-8')
+                print('result 0x' + output.strip())
+                output = int('0x' + output, 16)
 
-            exp_output = FixedPoint(relu(x_val) + r2_val)
-            output_float = FixedPoint().int_to_float(output)
+                # exp_output = (x) % 2**N
+                #exp_output = x.as_int() % 2**N
+                #if exp_output < 2**(N - 1):  # x negative
+                #    exp_output = 2**(N - 1)  # x := 0
+                #exp_output -= r2_val  # Masking with r2
 
-            print('inputs:')
-            print('r1 (int)', r1.as_int(), '(float)', r1.as_float())
-            print('r2 (int)', r2.as_int(), '(float)', r2.as_float())
-            print('x (int)', x.as_int(), '(float)', x.as_float())
-            print('expect: (int)', exp_output.as_int(), '(float)',
-                  exp_output.as_float())
-            print('output: (int)', output, '(float)', output_float, '\n')
+                exp_output = FixedPoint(relu(x_val) + r2_val)
+                output_float = FixedPoint().int_to_float(output)
 
-            assert (exp_output.as_int() == output)
+                print('inputs:')
+                print('r1 (int)', r1.as_int(), '(float)', r1.as_float())
+                print('r2 (int)', r2.as_int(), '(float)', r2.as_float())
+                print('x (int)', x.as_int(), '(float)', x.as_float())
+                print('expect: (int)', exp_output.as_int(), '(float)',
+                      exp_output.as_float())
+                print('output: (int)', output, '(float)', output_float, '\n')
 
-            return
+                assert (exp_output.as_int() == output)
 
 
 def main():
