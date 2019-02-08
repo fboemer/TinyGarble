@@ -1,20 +1,20 @@
 `timescale 1ns / 1ps
 module relu
 #(
-	parameter N=8 // Bit-width of inputs to sum
+	parameter N=32 // Bit-width of inputs to sum
 )
 (
 	clk,
 	rst,
-	g_input, // =: A
-	e_input, // =: B; learns the output
+	g_input,
+	e_input, // learns the output
 	o
 );
 
 	input clk, rst;
 	input[2*N-1:0] g_input; // 2 N-bit numbers; [r_1, r_2]
 	input[N-1:0] e_input;   // N-bit number [x-r_1]
-	output [N-1:0] o;
+	output [N-1:0] o;       // Relu(x) - r_2
 
 	wire [N-1:0] x; // Holds reconstructed secret
 	wire negative;
@@ -24,7 +24,7 @@ module relu
 	assign r1 = g_input[2*N-1:N];
 	assign r2 = g_input[N-1:0];
 
-	// Reconstruct x
+	// Reconstruct x (mod 2**N)
 	ADD #( .N(N) ) OP1
 	(
 		.A(r1),
@@ -34,8 +34,9 @@ module relu
 		.CO()			 // Carry-out discardded
 	);
 
+	// This encodes 2^31. TODO: less obtuse representation
+	localparam MAX_INT =32'b00000000000000000000000000000000;
 	// Compare result against N/2
-	localparam MAX_INT = 2**(N-1);
 	COMP #( .N(N) ) OP2
 	(
 			.A(MAX_INT),
@@ -47,10 +48,11 @@ module relu
 
 	always@(negative) begin
 		if (negative == 1) begin
-				relu_x <= 8'b10000000; // TODO: solution with CC>1
+				relu_x <= MAX_INT; // TODO: solution with CC>1
 		end
 		else begin
 			 relu_x <= x;
+			 //relu_x <= MAX_INT; (For debugging value of MAX_INT)
 		end
 	end
 
@@ -64,4 +66,3 @@ module relu
 	);
 
 endmodule
-

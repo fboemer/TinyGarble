@@ -14,6 +14,36 @@ def int_to_hex(x, HEX_LEN):
         return x_hex
 
 
+class FixedPoint:
+    def __init__(self, value=0):
+        self.WIDTH = 32
+        assert (self.WIDTH % 4 == 0)  # To enable HEX_LEN
+        self.DEC_WIDTH = 10
+        self.HEX_LEN = int(self.WIDTH / 4)
+        self.value = value
+
+        self.bignum = int(value * 2**self.DEC_WIDTH) + int(2**self.WIDTH / 2)
+
+    def as_hex(self):
+        return int_to_hex(self.bignum, self.HEX_LEN)
+
+    def as_bin(self):
+        return bin(self.bignum)
+
+    def as_int(self):
+        return self.bignum
+
+    def as_float(self):
+        return (self.bignum - 2**(self.WIDTH - 1)) / (2**self.DEC_WIDTH)
+
+    def int_to_float(self, bignum):
+        return (bignum - 2**(self.WIDTH - 1)) / (2**self.DEC_WIDTH)
+
+
+def relu(x):
+    return max(0, x)
+
+
 def test_relu():
 
     clock_cycles = 1
@@ -25,18 +55,34 @@ def test_relu():
 
     random.seed(1)
 
-    for x in [0, 50, 100, 150, 200, 250]:
-        for r1 in [0, 50, 100, 150, 200, 250]:
-            if x - r1 < 0:
+    for x_val in [0, 50, 100, 150, 200, 250]:
+        for r1_val in [0, 50, 100, 150, 200, 250]:
+            if x_val - r1_val < 0:
                 continue
 
             r2 = int(random.random() * MAX_N_HALVES)
 
-            e_in = x - r1
-            e_hex_in = int_to_hex(e_in, HEX_LEN)
+            x_val = 8.5
+            r1_val = 0.0
+            r2_val = 0.0
+            e_in_val = x_val - r1_val
 
-            r1_hex = int_to_hex(r1, HEX_LEN)
-            r2_hex = int_to_hex(r2, HEX_LEN)
+            x = FixedPoint(x_val)
+
+            print('x_int', x.as_int())
+            print('x_float', x.as_float())
+            r1 = FixedPoint(r1_val)
+            print('r1_int', r1.as_int())
+            print('r1_float', r1.as_float())
+            r2 = FixedPoint(r2_val)
+
+            e_in = FixedPoint(e_in_val)
+            e_hex_in = e_in.as_hex()
+            print('e1_int', e_in.as_int())
+            print('e1_float', e_in.as_float())
+
+            r1_hex = r1.as_hex()
+            r2_hex = r2.as_hex()
 
             g_hex_in = r1_hex + r2_hex
 
@@ -54,19 +100,27 @@ def test_relu():
 
             result = subprocess.run([cmd], shell=True, stdout=subprocess.PIPE)
             output = result.stdout.decode('utf-8')
-            print('result', output.strip())
+            print('result 0x', output.strip())
             output = int('0x' + output, 16)
 
             # exp_output = (x) % 2**N
-            exp_output = x % 2**N
-            if exp_output < 2**(N - 1):  # x negative
-                exp_output = 2**(N - 1)  # x := 0
-            exp_output -= r2  # Masking with r2
+            #exp_output = x.as_int() % 2**N
+            #if exp_output < 2**(N - 1):  # x negative
+            #    exp_output = 2**(N - 1)  # x := 0
+            #exp_output -= r2_val  # Masking with r2
 
-            print('inputs:', 'r1', r1, 'r2', r2, 'x', x, 'expect:', exp_output,
-                  'output:', output, '\n')
+            exp_output = FixedPoint(relu(x_val) - r2_val)
+            output_float = FixedPoint().int_to_float(output)
 
-            assert (exp_output == output)
+            print('inputs:')
+            print('r1 (int)', r1.as_int(), '(float)', r1.as_float())
+            print('r2 (int)', r2.as_int(), '(float)', r2.as_float())
+            print('x (int)', x.as_int(), '(float)', x.as_float())
+            print('expect: (int)', exp_output.as_int(), '(float)',
+                  exp_output.as_float())
+            print('output: (int)', output, '(float)', output_float, '\n')
+
+            assert (exp_output.as_int() == output)
 
 
 def main():
