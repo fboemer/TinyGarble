@@ -47,16 +47,21 @@ module relu
 
 	always@(negative) begin
 		if (negative == 1) begin
-				relu_x <= 8'b10000000; // 1'b1; // 1'b0; // 2**N / 2 == 0
+				relu_x <= 8'b10000000; // TODO: solution with CC>1
 		end
 		else begin
 			 relu_x <= x;
 		end
 	end
 
-	assign o = relu_x[N-1:0];
-
-	// Check if output is bigger than N
+	// Mask with r2; store result in o
+	SUB #( .N(N) ) OP3
+	(
+		.A(relu_x),
+		.B(r2),
+		.S(o),
+		.CO()
+	);
 
 endmodule
 

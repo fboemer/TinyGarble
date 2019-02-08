@@ -61,6 +61,7 @@ def test_relu():
             exp_output = x % 2**N
             if exp_output < 2**(N - 1):  # x negative
                 exp_output = 2**(N - 1)  # x := 0
+            exp_output -= r2  # Masking with r2
 
             print('inputs:', 'r1', r1, 'r2', r2, 'x', x, 'expect:', exp_output,
                   'output:', output, '\n')
