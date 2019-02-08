@@ -17,7 +17,7 @@ module relu
 	output [N-1:0] o;
 
 	wire [N-1:0] x; // Holds reconstructed secret
-	wire overflow;
+	wire negative;
 	wire [N-1:0] r1;
 	wire [N-1:0] r2;
 
@@ -27,7 +27,7 @@ module relu
 	// Reconstruct x
 	ADD #( .N(N) ) OP1
 	(
-		.A(g_input[2*N-1:N]), //
+		.A(r1),
 		.B(e_input),
 		.CI(1'b0), // No carry in
 		.S(x),     // Sum is stored in output
@@ -35,18 +35,26 @@ module relu
 	);
 
 	// Compare result against N/2
-	/* localparam MAX_INT = 2**(N-1);
+	localparam MAX_INT = 2**(N-1);
 	COMP #( .N(N) ) OP2
 	(
-			.A(x),
-			.B(MAX_INT),
-			.O(overflow)
-	); */
+			.A(MAX_INT),
+			.B(x),
+			.O(negative)
+	);
 
-	assign o = x;
+	wire [N-1:0] relu_x;
 
+	always@(negative) begin
+		if (negative == 1) begin
+				relu_x <= 8'b10000000; // 1'b1; // 1'b0; // 2**N / 2 == 0
+		end
+		else begin
+			 relu_x <= x;
+		end
+	end
 
-
+	assign o = relu_x[N-1:0];
 
 	// Check if output is bigger than N
 

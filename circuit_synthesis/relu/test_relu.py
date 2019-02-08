@@ -16,7 +16,7 @@ def int_to_hex(x, HEX_LEN):
 
 def test_relu():
 
-    clock_cycles = 8
+    clock_cycles = 1
     N = 8  # bit-width of inputs
     HEX_LEN = int(N / 4)  # HEX width of input
     MAX_N_HALVES = 2**(N - 1)
@@ -57,9 +57,12 @@ def test_relu():
             print('result', output.strip())
             output = int('0x' + output, 16)
 
-            exp_output = (x) % 2**N
+            # exp_output = (x) % 2**N
+            exp_output = x % 2**N
+            if exp_output < 2**(N - 1):  # x negative
+                exp_output = 2**(N - 1)  # x := 0
 
-            print('inputs:', g_hex_in, e_hex_in, 'expect:', exp_output,
+            print('inputs:', 'r1', r1, 'r2', r2, 'x', x, 'expect:', exp_output,
                   'output:', output, '\n')
 
             assert (exp_output == output)
