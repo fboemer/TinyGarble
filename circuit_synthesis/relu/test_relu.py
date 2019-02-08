@@ -62,7 +62,7 @@ def test_relu():
 
             r2 = int(random.random() * MAX_N_HALVES)
 
-            x_val = 8.5
+            x_val = -8.5
             r1_val = 0.0
             r2_val = 0.0
             e_in_val = x_val - r1_val
@@ -100,7 +100,7 @@ def test_relu():
 
             result = subprocess.run([cmd], shell=True, stdout=subprocess.PIPE)
             output = result.stdout.decode('utf-8')
-            print('result 0x', output.strip())
+            print('result 0x' + output.strip())
             output = int('0x' + output, 16)
 
             # exp_output = (x) % 2**N
@@ -109,7 +109,7 @@ def test_relu():
             #    exp_output = 2**(N - 1)  # x := 0
             #exp_output -= r2_val  # Masking with r2
 
-            exp_output = FixedPoint(relu(x_val) - r2_val)
+            exp_output = FixedPoint(relu(x_val) + r2_val)
             output_float = FixedPoint().int_to_float(output)
 
             print('inputs:')
@@ -121,6 +121,8 @@ def test_relu():
             print('output: (int)', output, '(float)', output_float, '\n')
 
             assert (exp_output.as_int() == output)
+
+            return
 
 
 def main():
