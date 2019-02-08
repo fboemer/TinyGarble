@@ -1,5 +1,5 @@
 #!/bin/bash
-# Geneate relu_syn_yos.v netlist
+# Generate relu_syn_yos.v netlist
 yosys -s relu.yos
 
 # Convert netlist to SCD
